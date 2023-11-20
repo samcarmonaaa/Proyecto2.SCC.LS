@@ -4,95 +4,95 @@
 
 import re
 
-class TablaSimbolos:
+class TablaDeSimbolos:
     def __init__(self):
-        self.symbols = {}
+        self.simbolos = {}
 
-    def insert(self, name, type):
-        self.symbols[name] = type
+    def insertar(self, nombre, tipo):
+        self.simbolos[nombre] = tipo
 
-    def lookup(self, name):
-        return self.symbols.get(name, None)
+    def buscar(self, nombre):
+        return self.simbolos.get(nombre, None)
 
-    def delete(self, name):
-        if name in self.symbols:
-            del self.symbols[name]
+    def eliminar(self, nombre):
+        if nombre in self.simbolos:
+            del self.simbolos[nombre]
 
 class AnalizadorSemantico:
-    def __init__(self, symbol_table):
-        self.symbol_table = symbol_table
-        self.errors = []
+    def __init__(self, tabla_de_simbolos):
+        self.tabla_de_simbolos = tabla_de_simbolos
+        self.errores = []
 
-    def analyze_code(self, source_code):
-        lines = source_code.split('\n')
-        self.errors = []
-        current_function = None
+    def analizar_codigo(self, codigo_fuente):
+        lineas = codigo_fuente.split('\n')
+        self.errores = []
+        funcion_actual = None
 
-        def report_error(message, line_number):
-            self.errors.append(f"Error - Línea {line_number}: {message}")
+        def reportar_error(mensaje, numero_de_linea):
+            self.errores.append(f"Error - Línea {numero_de_linea}: {mensaje}")
 
-        for i, line in enumerate(lines, start=1):
-            line = line.strip()
+        for i, linea in enumerate(lineas, start=1):
+            linea = linea.strip()
 
-            # Ignore empty lines
-            if not line:
+            # Ignorar líneas vacías
+            if not linea:
                 continue
 
-            # Check for variable declarations
-            match = re.match(r'^\s*([a-zA-Z_]\w*)\s*=\s*(.*)$', line)
-            if match:
-                name, value = match.groups()
-                if current_function is None:
-                    report_error(f"'{name}' no está declarado", i)
+            # Verificar declaraciones de variables
+            coincidencia = re.match(r'^\s*([a-zA-Z_]\w*)\s*=\s*(.*)$', linea)
+            if coincidencia:
+                nombre, valor = coincidencia.groups()
+                if funcion_actual is None:
+                    reportar_error(f"'{nombre}' no está declarado", i)
                 else:
-                    self.symbol_table.insert(name, current_function)
+                    self.tabla_de_simbolos.insertar(nombre, funcion_actual)
                 continue
 
-            # Check for function declarations
-            match = re.match(r'^\s*([a-zA-Z_]\w*)\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*{?$', line)
-            if match:
-                return_type, func_name, params = match.groups()
-                current_function = func_name
+            # Verificar declaraciones de funciones
+            coincidencia = re.match(r'^\s*([a-zA-Z_]\w*)\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*{?$', linea)
+            if coincidencia:
+                tipo_retorno, nombre_funcion, parametros = coincidencia.groups()
+                funcion_actual = nombre_funcion
                 continue
 
-            # Check for return statements
-            if current_function and line.startswith("return"):
-                if not line.endswith(';'):
-                    report_error(f"valor de retorno no coincide con la declaración de '{current_function}'", i)
+            # Verificar sentencias de retorno
+            if funcion_actual and linea.startswith("return"):
+                if not linea.endswith(';'):
+                    reportar_error(f"valor de retorno no coincide con la declaración de '{funcion_actual}'", i)
                 continue
 
-            # Check for invalid statements
-            if re.match(r'^\s*(if|while)\s*\(', line):
-                report_error(f"Sentencia '{line.split('(')[0]}' no permitida en este contexto", i)
+            # Verificar sentencias inválidas
+            if re.match(r'^\s*(if|while)\s*\(', linea):
+                reportar_error(f"Sentencia '{linea.split('(')[0]}' no permitida en este contexto", i)
                 continue
 
-            # Check for unknown statements
-            if re.match(r'^\s*(\w+)\s*\(', line):
-                report_error(f"Declaración de función o variable desconocida: {line.split('(')[0]}", i)
+            # Verificar sentencias desconocidas
+            if re.match(r'^\s*(\w+)\s*\(', linea):
+                reportar_error(f"Declaración de función o variable desconocida: {linea.split('(')[0]}", i)
                 continue
 
-        return self.errors
+        return self.errores
 
-def read_source_code(file_path):
+def leer_codigo_fuente(ruta_archivo):
     try:
-        with open(file_path, 'r') as file:
-            source_code = file.read()
-        return source_code
+        with open(ruta_archivo, 'r') as archivo:
+            codigo_fuente = archivo.read()
+        return codigo_fuente
     except FileNotFoundError:
-        print(f"El archivo '{file_path}' no se encontró.")
+        print(f"El archivo '{ruta_archivo}' no se encontró.")
         return None
 
 if __name__ == "__main__":
-    file_path = "codigo_fuente.txt"  # Reemplaza con la ruta de tu archivo
-    source_code = read_source_code(file_path)
+    ruta_archivo = "codigo_fuente.txt"  # Reemplaza con la ruta de tu archivo
+    codigo_fuente = leer_codigo_fuente(ruta_archivo)
 
-    if source_code:
-        symbol_table = TablaSimbolos()
-        analyzer = AnalizadorSemantico(symbol_table)
-        errors = analyzer.analyze_code(source_code)
+    if codigo_fuente:
+        tabla_de_simbolos = TablaDeSimbolos()
+        analizador = AnalizadorSemantico(tabla_de_simbolos)
+        errores = analizador.analizar_codigo(codigo_fuente)
 
-        if errors:
-            for error in errors:
+        if errores:
+            for error in errores:
                 print(error)
         else:
             print("El código fuente es correcto.")
