@@ -1,3 +1,7 @@
+#Proyecto2
+#SamuelCarmonaCalvo
+#LuciaSomarribasValenzuela
+
 import re
 
 class TablaSimbolos:
