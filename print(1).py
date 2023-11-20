@@ -8,7 +8,7 @@ import re
 class TablaDeSimbolos:
 
     def __init__(self):
-        # Diccionario para almacenar símbolos (nombre -> tipo)
+        # Diccionario para almacenar símbolos 
         self.simbolos = {}
 
     def insertar(self, nombre, tipo):
@@ -25,6 +25,17 @@ class TablaDeSimbolos:
             del self.simbolos[nombre]
 
 
+# Función para leer el código fuente desde un archivo
+def leer_codigo_fuente(ruta_archivo):
+    try:
+        with open(ruta_archivo, 'r') as archivo:
+            codigo_fuente = archivo.read()
+        return codigo_fuente
+    
+    except FileNotFoundError:
+        print(f"El archivo '{ruta_archivo}' no se encontró.")
+        return None
+
 
 # Clase para el analizador semántico
 class AnalizadorSemantico:
@@ -36,43 +47,40 @@ class AnalizadorSemantico:
         self.errores = []
 
     def analizar_codigo(self, codigo_fuente):
-        
         # Método para realizar el análisis semántico del código fuente
         lineas = codigo_fuente.split('\n')
         self.errores = []
         funcion_actual = None
 
-        def reportar_error(mensaje, numero_de_linea):
-        
-            # Función interna para agregar un mensaje de error a la lista
+    def reportar_error(mensaje, numero_de_linea):
+            # Función para agregar un mensaje de error 
             self.errores.append(f"Error - Línea {numero_de_linea}: {mensaje}")
 
         for i, linea in enumerate(lineas, start=1):
-
             linea = linea.strip()
-
+            
             # Ignorar líneas vacías
             if not linea:
-
                 continue
-
-            # Verificar declaraciones de variables
+                
+            # Verificar declaraciones de las variables
             coincidencia = re.match(r'^\s*([a-zA-Z_]\w*)\s*=\s*(.*)$', linea)
-
+            
             if coincidencia:
-
+                
                 nombre, valor = coincidencia.groups()
-
+                
                 if funcion_actual is None:
-
+                    
                     reportar_error(f"'{nombre}' no está declarado", i)
-
+                    
                 else:
-
+                    
                     self.tabla_de_simbolos.insertar(nombre, funcion_actual)
-
+                    
                 continue
 
+            
             # Verificar declaraciones de funciones
             coincidencia = re.match(r'^\s*([a-zA-Z_]\w*)\s+([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*{?$', linea)
 
@@ -84,15 +92,17 @@ class AnalizadorSemantico:
 
                 continue
 
+            
             # Verificar sentencias de retorno
             if funcion_actual and linea.startswith("return"):
 
                 if not linea.endswith(';'):
 
-                    reportar_error(f"valor de retorno no coincide con la declaración de '{funcion_actual}'", i)
+                    reportar_error(f"El valor no coincide con la declaración de '{funcion_actual}'", i)
 
                 continue
 
+            
             # Verificar sentencias inválidas
             if re.match(r'^\s*(if|while)\s*\(', linea):
 
@@ -100,7 +110,8 @@ class AnalizadorSemantico:
 
                 continue
 
-            # Verificar sentencias desconocidas
+            
+            # Verificar desconocidas
             if re.match(r'^\s*(\w+)\s*\(', linea):
 
                 reportar_error(f"Declaración de función o variable desconocida: {linea.split('(')[0]}", i)
@@ -110,22 +121,6 @@ class AnalizadorSemantico:
         return self.errores
 
 
-# Función para leer el código fuente desde un archivo
-def leer_codigo_fuente(ruta_archivo):
-
-    try:
-
-        with open(ruta_archivo, 'r') as archivo:
-            codigo_fuente = archivo.read()
-        return codigo_fuente
-    
-    except FileNotFoundError:
-
-        print(f"El archivo '{ruta_archivo}' no se encontró.")
-        return None
-
-
-# Punto de entrada principal
 if __name__ == "__main__":
 
     ruta_archivo = "codigo_fuente.txt"  # Reemplaza con la ruta de tu archivo
